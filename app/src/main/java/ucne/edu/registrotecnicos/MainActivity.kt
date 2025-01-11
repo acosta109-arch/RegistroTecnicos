@@ -205,16 +205,25 @@ class MainActivity : ComponentActivity() {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(modifier = Modifier.weight(1f), text = it.tecnicoId.toString())
             Text(
-                modifier = Modifier.weight(2f),
-                text = it.nombres,
-                style = MaterialTheme.typography.headlineLarge
+                modifier = Modifier.weight(1f),
+                text = it.tecnicoId.toString(),
+                style = MaterialTheme.typography.bodySmall
             )
-            Text(modifier = Modifier.weight(2f), text = it.sueldo.toString())
+            Text(
+                modifier = Modifier.weight(1f),
+                text = it.nombres,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                modifier = Modifier.weight(1f),
+                text = it.sueldo.toString(),
+                style = MaterialTheme.typography.bodySmall
+            )
         }
         HorizontalDivider()
     }
+
 
     private suspend fun saveTecnico(tecnico: TecnicoEntity) {
         tecnicoDb.tecnicoDao().save(tecnico)
