@@ -234,7 +234,7 @@ fun DeleteTicketScreen(
                     },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 ) {
-                    Text(text = "Cancelar")
+                    Text(text = "Volver")
                 }
             } else {
                 Text(

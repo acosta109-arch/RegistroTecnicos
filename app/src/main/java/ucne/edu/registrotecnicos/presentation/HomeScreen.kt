@@ -39,7 +39,7 @@ fun HomeScreen(
         )
 
         Text(
-            text = "Seleccione una",
+            text = "Seleccione una opción",
             color = Color.White,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -53,7 +53,7 @@ fun HomeScreen(
                 .padding(vertical = 8.dp)
                 .clickable(onClick = goToTecnico),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF4CAF50)
+                containerColor = Color.Blue
             ),
             elevation = CardDefaults.cardElevation(8.dp)
         ) {
@@ -83,7 +83,7 @@ fun HomeScreen(
                 .padding(vertical = 8.dp)
                 .clickable(onClick = goToTickets),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF4CAF50)
+                containerColor = Color.Blue
             ),
             elevation = CardDefaults.cardElevation(8.dp)
         ) {

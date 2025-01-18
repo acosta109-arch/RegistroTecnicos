@@ -46,7 +46,7 @@ fun EditTecnicoScreen(
                 style = TextStyle(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Blue,
+                    color = Color.White,
                     textAlign = TextAlign.Center
                 )
             )
@@ -134,7 +134,7 @@ fun EditTecnicoScreen(
                         }
                     }
                 ) {
-                    Text(text = "Guardar")
+                    Text(text = "Modificar")
                 }
 
                 OutlinedButton(
@@ -143,7 +143,7 @@ fun EditTecnicoScreen(
                         goBack()
                     }
                 ) {
-                    Text(text = "Cancelar")
+                    Text(text = "Volver")
                 }
             }
         }
