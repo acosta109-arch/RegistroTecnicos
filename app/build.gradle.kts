@@ -1,23 +1,28 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.application) // Asegúrate de que esta versión sea AGP 8.7.3
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    id("androidx.room")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
 
 android {
-    namespace = "ucne.edu.registrotecnicos"
-    compileSdk = 35
+    namespace = "edu.ucne.registrotecnicos"
+    compileSdk = 35 // Verifica si la versión 35 es compatible con AGP 8.7.3, sino, considera cambiarla a una versión más baja (p. ej., 34)
 
     defaultConfig {
-        applicationId = "ucne.edu.registrotecnicos"
+        applicationId = "edu.ucne.registrotecnicos"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 35 // Cambia a la versión correspondiente si es necesario
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 
     buildTypes {
@@ -42,7 +47,30 @@ android {
 }
 
 dependencies {
+    // Navegación
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlin.serialization.json)
 
+    // Room
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler) // Si estás usando KSP para Room
+    implementation(libs.androidx.room.ktx)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.moshi.kotlin)
+    implementation(libs.converter.moshi)
+    implementation(libs.logging.interceptor)
+
+    // LifeCycleOwner
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Dependencias principales de AndroidX
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -52,33 +80,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
-
-    //navegacion
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.kotlinx.serialization.json)
-
-    //room
-    implementation(libs.androidx.room.runtime)
-    annotationProcessor(libs.androidx.room.compiler)
-    ksp(libs.androidx.room.compiler)
-    //  optional - Kotlin Extensions and Coroutines support for Room
-    implementation(libs.androidx.room.ktx)
-
-    //Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
-
-    //retrofit
-    implementation(libs.retrofit)
-    implementation(libs.moshi.kotlin)
-    implementation(libs.converter.moshi)
-    implementation(libs.logging.interceptor)
-
-
-
-
+    // Dependencias de pruebas
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
