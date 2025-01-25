@@ -1,6 +1,11 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package edu.ucne.registro_tecnicos.presentation.navigation.ticket
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -10,131 +15,141 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import ucne.edu.registrotecnicos.data.local.database.TecnicoDb
 import ucne.edu.registrotecnicos.data.local.entity.TicketEntity
+import ucne.edu.registrotecnicos.presentation.ticket.TicketViewModel
 
 @Composable
 fun EditTicketScreen(
-    tecnicoDb: TecnicoDb,
+    viewModel: TicketViewModel = hiltViewModel(),
     ticketId: Int,
     goBack: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
-    var ticket by remember { mutableStateOf<TicketEntity?>(null) }
-    var fecha by remember { mutableStateOf("") }
-    var prioridad by remember { mutableStateOf("") }
-    var cliente by remember { mutableStateOf("") }
-    var asunto by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-    var tecnicoId by remember { mutableStateOf(0) }
-    var mensajeError by remember { mutableStateOf("") }
-    var mensajeExito by remember { mutableStateOf("") }
-
     LaunchedEffect(ticketId) {
-        val loadedTicket = tecnicoDb.ticketDao().find(ticketId)
-        ticket = loadedTicket
-        if (loadedTicket != null) {
-            fecha = loadedTicket.fecha ?: ""
-            prioridad = loadedTicket.prioridadId?.toString() ?: ""
-            cliente = loadedTicket.cliente ?: ""
-            asunto = loadedTicket.asunto ?: ""
-            descripcion = loadedTicket.descripcion
-            tecnicoId = loadedTicket.tecnicoId
-        }
+        viewModel.selectTicket(ticketId)
     }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    EditTicketBodyScreen(
+        uiState = uiState,
+        onFechaChange = viewModel::onFechaChange,
+        onPrioridadChange = { newValue: String ->
+            val prioridadId = newValue.toIntOrNull()
+            viewModel.onPrioridadIdChange(prioridadId)
+        },
+        onClienteChange = viewModel::onClienteChange,
+        onAsuntoChange = viewModel::onAsuntoChange,
+        onDescripcionChange = viewModel::onDescripcionChange,
+        onTecnicoIdChange = viewModel::onTecnicoIdChange,
+        save = viewModel::saveTicket,
+        goBack = goBack
+    )
+}
+
+@Composable
+fun EditTicketBodyScreen(
+    uiState: TicketViewModel.UiState,
+    onFechaChange: (String) -> Unit,
+    onPrioridadChange: (String) -> Unit,
+    onClienteChange: (String) -> Unit,
+    onAsuntoChange: (String) -> Unit,
+    onDescripcionChange: (String) -> Unit,
+    onTecnicoIdChange: (Int) -> Unit,
+    save: () -> Unit,
+    goBack: () -> Unit
+) {
     Scaffold(
         topBar = {
-            Text(
-                text = "Editar Ticket",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "Editar Ticket",
+                        style = TextStyle(
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = goBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = save) {
+                        Icon(Icons.Filled.Check, contentDescription = "Guardar")
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFF6200EE)
                 )
             )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Fecha") },
-                value = fecha,
-                onValueChange = {
-                    fecha = it
-                    mensajeError = ""
-                }
+                value = uiState.fecha ?: "",
+                onValueChange = onFechaChange
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Prioridad") },
-                value = prioridad,
-                onValueChange = {
-                    prioridad = it
-                    mensajeError = ""
-                }
+                value = uiState.prioridadId?.toString() ?: "",
+                onValueChange = onPrioridadChange
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Cliente") },
-                value = cliente,
-                onValueChange = {
-                    cliente = it
-                    mensajeError = ""
-                }
+                value = uiState.cliente ?: "",
+                onValueChange = onClienteChange
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Asunto") },
-                value = asunto,
-                onValueChange = {
-                    asunto = it
-                    mensajeError = ""
-                }
+                value = uiState.asunto ?: "",
+                onValueChange = onAsuntoChange
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Descripción") },
-                value = descripcion,
-                onValueChange = {
-                    descripcion = it
-                    mensajeError = ""
-                }
+                value = uiState.descripcion ?: "",
+                onValueChange = onDescripcionChange
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Técnico ID") },
-                value = tecnicoId.toString(),
-                onValueChange = {
-                    tecnicoId = it.toIntOrNull() ?: 0
-                    mensajeError = ""
+                value = uiState.tecnicoId?.toString() ?: "",
+                onValueChange = { newValue ->
+                    onTecnicoIdChange(newValue.toIntOrNull() ?: 0)
                 }
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (mensajeError.isNotEmpty()) {
+            // For mensajeError
+            if (!uiState.mensajeError.isNullOrEmpty()) {
                 Text(
-                    text = mensajeError,
+                    text = uiState.mensajeError ?: "",
                     color = Color.Red,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center
@@ -142,9 +157,10 @@ fun EditTicketScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            if (mensajeExito.isNotEmpty()) {
+// For mensajeExito
+            if (!uiState.mensajeExito.isNullOrEmpty()) {
                 Text(
-                    text = mensajeExito,
+                    text = uiState.mensajeExito ?: "",
                     color = Color.Green,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center
@@ -152,58 +168,26 @@ fun EditTicketScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedButton(
                     modifier = Modifier.weight(1f),
-                    onClick = {
-                        scope.launch {
-                            if (fecha.isBlank() || prioridad.isBlank() || cliente.isBlank() || asunto.isBlank() || descripcion.isBlank() || tecnicoId == 0) {
-                                mensajeError = "Debe completar todos los campos."
-                                return@launch
-                            }
-
-                            val prioridadValor = prioridad.toIntOrNull()
-                            if (prioridadValor == null || prioridadValor <= 0) {
-                                mensajeError = "La prioridad debe ser un número mayor que 0."
-                                return@launch
-                            }
-
-                            val updatedTicket = TicketEntity(
-                                ticketId = ticketId,
-                                tecnicoId = tecnicoId,
-                                descripcion = descripcion,
-                                prioridadId = prioridadValor,
-                                cliente = cliente,
-                                asunto = asunto,
-                                fecha = fecha
-                            )
-
-                            tecnicoDb.ticketDao().save(updatedTicket)
-
-                            mensajeExito = "Ticket actualizado con éxito."
-
-                            kotlinx.coroutines.delay(2000)
-                            goBack()
-                        }
-                    }
+                    onClick = { save() }
                 ) {
-                    Text(text = "Modificar")
+                    Text(text = "Guardar")
                 }
 
                 OutlinedButton(
                     modifier = Modifier.weight(1f),
-                    onClick = {
-                        goBack()
-                    }
+                    onClick = { goBack() }
                 ) {
-                    Text(text = "Volver")
+                    Text(text = "Cancelar")
                 }
             }
         }
     }
 }
-
 

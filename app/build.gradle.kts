@@ -1,28 +1,28 @@
 plugins {
-    alias(libs.plugins.android.application) // Asegúrate de que esta versión sea AGP 8.7.3
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.serialization)
-    id("androidx.room")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
+    id("com.google.devtools.ksp") version "2.0.0-1.0.23"
     id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.plugin.compose")
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 android {
     namespace = "edu.ucne.registrotecnicos"
-    compileSdk = 35 // Verifica si la versión 35 es compatible con AGP 8.7.3, sino, considera cambiarla a una versión más baja (p. ej., 34)
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "edu.ucne.registrotecnicos"
         minSdk = 24
-        targetSdk = 35 // Cambia a la versión correspondiente si es necesario
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-    room {
-        schemaDirectory("$projectDir/schemas")
+        vectorDrawables {
+            useSupportLibrary = true
+        }
     }
 
     buildTypes {
@@ -35,42 +35,57 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "1.8"
     }
     buildFeatures {
         compose = true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 }
 
 dependencies {
-    // Navegación
+    //navigation
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.kotlin.serialization.json)
+    implementation(libs.kotlinx.serialization.json)
 
-    // Room
-    implementation(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler) // Si estás usando KSP para Room
-    implementation(libs.androidx.room.ktx)
+    //room
+    implementation("androidx.room:room-runtime:2.6.1")
+    annotationProcessor("androidx.room:room-compiler:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
 
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
 
-    // Retrofit
-    implementation(libs.retrofit)
-    implementation(libs.moshi.kotlin)
-    implementation(libs.converter.moshi)
-    implementation(libs.logging.interceptor)
 
-    // LifeCycleOwner
-    implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // Dependencias principales de AndroidX
+    //optional
+    implementation("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.compose.material3:material3:1.1.0-alpha02")
+    implementation ("androidx.compose.material:material:1.4.0")
+    implementation("androidx.compose.material:material:1.3.1") // Usa la última versión
+
+
+
+    //Hilt
+    implementation("com.google.dagger:hilt-android:2.51")
+    ksp("com.google.dagger:hilt-android-compiler:2.51")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    //Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -79,8 +94,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-
-    // Dependencias de pruebas
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -1,5 +1,6 @@
 package ucne.edu.registrotecnicos.presentation.tecnico
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +29,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
@@ -37,113 +44,130 @@ import ucne.edu.registrotecnicos.data.repository.TecnicoRepository
 
 
 @Composable
-fun TecnicoScreen(
-    tecnicoDb: TecnicoDb,
-    goBack: ()-> Unit,
-    tecnicoRepository: TecnicoRepository
-) {
-    var nombres by remember { mutableStateOf("") }
-    var sueldo by remember { mutableStateOf("") }
-    var errorMessage: String? by remember { mutableStateOf(null) }
+fun TecnicoScreen(viewModel: TecnicoViewModel = hiltViewModel(), goBack: () -> Unit) {
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    TecnicoBodyScreen(
+        uiState = uiState.value,
+        onNombresChange = viewModel::onNombresChange,
+        onSueldoChange = viewModel::onSueldoChange,
+        save = viewModel::saveTecnico,
+        nuevo = viewModel::nuevoTecnico,
+        goBack = goBack
+    )
+}
 
-    Scaffold { innerPadding ->
+@Composable
+fun TecnicoBodyScreen(
+    uiState: TecnicoViewModel.UiState,
+    onNombresChange: (String) -> Unit,
+    onSueldoChange: (String) -> Unit,
+    save: () -> Unit,
+    nuevo: () -> Unit,
+    goBack: () -> Unit
+) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            Text(
+                text = "Registro de Técnicos",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Blue,
+                    textAlign = TextAlign.Center
+                )
+            )
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(8.dp)
+                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            Box(
-                modifier = Modifier.fillMaxWidth()
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Nombres") },
+                value = uiState.nombres,
+                onValueChange = onNombresChange
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Sueldo") },
+                value = uiState.sueldo?.toString() ?: "",
+                onValueChange = { input ->
+                    try {
+                        onSueldoChange(input.toDoubleOrNull()?.toString() ?: "")
+                    } catch (e: NumberFormatException) {
+                        onSueldoChange("")
+                    }
+                },
+                isError = uiState.sueldo == null
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Añadir nuevo técnico",
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = { save() }
+                ) {
+                    Text(text = "Guardar")
+                    Icon(Icons.Default.Add, contentDescription = "Guardar")
+                }
+
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = { nuevo() }
+                ) {
+                    Text(text = "Nuevo")
+                    Icon(Icons.Default.Refresh, contentDescription = "Nuevo")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            uiState.successMessage?.let { message ->
+                ElevatedCard(
                     modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(vertical = 12.dp)
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    content = {
+                        Text(
+                            text = message,
+                            color = Color.Green,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                    ) {
-                        OutlinedTextField(
-                            label = { Text(text = "Nombres") },
-                            value = nombres,
-                            onValueChange = { nombres = it },
-                            modifier = Modifier.fillMaxWidth()
+            uiState.errorMessage?.let { message ->
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    content = {
+                        Text(
+                            text = message,
+                            color = Color.Red,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(16.dp)
                         )
-                        OutlinedTextField(
-                            label = { Text(text = "Sueldo") },
-                            value = sueldo,
-                            onValueChange = { sueldo = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(modifier = Modifier.padding(2.dp))
-                        errorMessage?.let {
-                            Text(text = it, color = Color.Red)
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            OutlinedButton(
-                                onClick = {
-
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Nuevo"
-                                )
-                                Text(text = "Nuevo")
-                            }
-                            val scope = rememberCoroutineScope()
-                            OutlinedButton(
-                                onClick = {
-                                    if (nombres.isBlank()) {
-                                        errorMessage = "Nombres vacíos."
-                                    } else {
-                                        try {
-                                            val sueldoDouble = sueldo.toDouble()
-                                            scope.launch {
-                                                tecnicoRepository.saveTecnico(
-                                                    TecnicoEntity(
-                                                        nombres = nombres,
-                                                        sueldo = sueldoDouble
-                                                    )
-                                                )
-                                                nombres = ""
-                                                sueldo = ""
-                                            }
-                                        } catch (e: NumberFormatException) {
-                                            errorMessage = "El sueldo debe ser un número válido."
-                                        }
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Guardar"
-                                )
-                                Text(text = "Guardar")
-                            }
-                        }
                     }
-                }
+                )
             }
         }
     }
 }
+
 

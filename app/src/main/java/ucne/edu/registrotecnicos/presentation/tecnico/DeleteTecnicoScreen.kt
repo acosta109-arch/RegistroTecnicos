@@ -30,31 +30,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun DeleteTecnicoScreen(
-    tecnicoDb: TecnicoDb,
+    viewModel: TecnicoViewModel = hiltViewModel(),
     tecnicoId: Int,
     goBack: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
-    val tecnico = remember { mutableStateOf<TecnicoEntity?>(null) }
-    val isLoading = remember { mutableStateOf(true) }
-
     LaunchedEffect(tecnicoId) {
-        val t = tecnicoDb.tecnicoDao().find(tecnicoId)
-        tecnico.value = t
-        isLoading.value = false
+        viewModel.selectTecnico(tecnicoId)
     }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    DeleteTecnicoBodyScreen(
+        uiState = uiState,
+        onDeleteTecnico = {
+            viewModel.deleteTecnico()
+            goBack()
+        },
+        goBack = goBack
+    )
+}
 
-    val tecnicoEntity = tecnico.value
-    var mensajeError by remember { mutableStateOf("") }
-    var mensajeExito by remember { mutableStateOf("") }
-
+@Composable
+fun DeleteTecnicoBodyScreen(
+    uiState: TecnicoViewModel.UiState,
+    onDeleteTecnico: () -> Unit,
+    goBack: () -> Unit
+) {
     Scaffold(
         topBar = {
             Text(
-                text = "¿Está seguro de Eliminar el Técnico?",
+                text = "¿Está seguro de eliminar al Técnico?",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
@@ -74,115 +82,64 @@ fun DeleteTecnicoScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            if (isLoading.value) {
-                Text(
-                    text = "Cargando...",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-            } else if (tecnicoEntity != null) {
-                Card(
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+                        .padding(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Nombre",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            ),
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                        Text(
-                            text = tecnicoEntity.nombres,
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                color = Color.Gray
-                            ),
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-
-                        // Muestra el sueldo
-                        Text(
-                            text = "Sueldo",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            ),
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
-                        )
-                        Text(
-                            text = "$${tecnicoEntity.sueldo}",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                color = Color.Gray
-                            )
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (mensajeError.isNotEmpty()) {
                     Text(
-                        text = mensajeError,
-                        color = Color.Red,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                        text = "Nombre: ${uiState.nombres}",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                if (mensajeExito.isNotEmpty()) {
+
                     Text(
-                        text = mensajeExito,
-                        color = Color.Green,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                        text = "Sueldo: ${uiState.sueldo}",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
+            }
 
-                Button(
-                    onClick = {
-                        scope.launch {
-                            tecnicoDb.tecnicoDao().delete(tecnicoEntity)
-                            mensajeExito = "Técnico Eliminado con Éxito."
-                            launch {
-                                kotlinx.coroutines.delay(2000)
-                                goBack()
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                ) {
-                    Text(text = "Eliminar")
-                }
+            Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
-                    onClick = {
-                        goBack()
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                ) {
-                    Text(text = "Volver")
-                }
-            } else {
-                Text(
-                    text = "Técnico no encontrado.",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    color = Color.Red
-                )
+            Button(
+                onClick = {
+                    onDeleteTecnico()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Text(text = "Eliminar")
+            }
+
+            Button(
+                onClick = {
+                    goBack()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Text(text = "Cancelar")
             }
         }
     }
 }
+
+

@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class TicketEntity(
     @PrimaryKey
     val ticketId: Int? = null,
-    val fecha: String = "",
+    val fecha: String,
     val prioridadId: Int? = null,
     val cliente: String = "",
     val asunto: String = "",

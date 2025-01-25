@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package ucne.edu.registrotecnicos.presentation.ticket
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,16 +11,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,7 +39,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import ucne.edu.registrotecnicos.data.local.database.TecnicoDb
@@ -37,154 +53,158 @@ import ucne.edu.registrotecnicos.data.repository.TecnicoRepository
 import ucne.edu.registrotecnicos.data.repository.TicketRepository
 
 @Composable
-fun TicketScreen(
-    tecnicoDb: TecnicoDb,
-    goBack: () -> Unit,
-    tecnicoRepository: TecnicoRepository,
-    ticketRepository: TicketRepository
+fun TicketScreen(viewModel: TicketViewModel = hiltViewModel(), goBack: () -> Unit, goToMensajeScreen: () -> Unit) {
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    TicketBodyScreen(
+        uiState = uiState.value,
+        onFechaChange = viewModel::onFechaChange,
+        onClienteChange = viewModel::onClienteChange,
+        onAsuntoChange = viewModel::onAsuntoChange,
+        onDescripcionChange = viewModel::onDescripcionChange,
+        onTecnicoIdChange = viewModel::onTecnicoIdChange,
+        onPrioridadIdChange = viewModel::onPrioridadIdChange,
+        saveTicket = viewModel::saveTicket,
+        nuevoTicket = viewModel::nuevoTicket,
+        goBack = goBack,
+        goToMensajeScreen = goToMensajeScreen
+    )
+}
+
+@Composable
+fun TicketBodyScreen(
+    uiState: TicketViewModel.UiState,
+    onFechaChange: (String) -> Unit,
+    onClienteChange: (String) -> Unit,
+    onAsuntoChange: (String) -> Unit,
+    onDescripcionChange: (String) -> Unit,
+    onTecnicoIdChange: (Int?) -> Unit,
+    onPrioridadIdChange: (Int?) -> Unit,
+    saveTicket: () -> Unit,
+    nuevoTicket: () -> Unit,
+    goToMensajeScreen: () -> Unit,
+    goBack: () -> Unit
 ) {
-    var fecha by remember { mutableStateOf("") }
-    var prioridadId by remember { mutableStateOf("") }
-    var cliente by remember { mutableStateOf("") }
-    var asunto by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-    var tecnicoId by remember { mutableStateOf("") }
-    var errorMessage: String? by remember { mutableStateOf(null) }
-
-    val tecnicosList = tecnicoRepository.getAll().collectAsStateWithLifecycle(initialValue = emptyList())
-
-    Scaffold { innerPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "Registrar Ticket",
+                        style = TextStyle(
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = goBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Regresar")
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFF6200EE)
+                )
+            )
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(8.dp)
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            Box(
-                modifier = Modifier.fillMaxWidth()
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Fecha") },
+                value = uiState.fecha,
+                onValueChange = onFechaChange
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Prioridad ID") },
+                value = uiState.prioridadId?.toString() ?: "",
+                onValueChange = { onPrioridadIdChange(it.toIntOrNull()) }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Cliente") },
+                value = uiState.cliente,
+                onValueChange = onClienteChange
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Asunto") },
+                value = uiState.asunto,
+                onValueChange = onAsuntoChange
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Descripción") },
+                value = uiState.descripcion,
+                onValueChange = onDescripcionChange
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Técnico ID") },
+                value = uiState.tecnicoId?.toString() ?: "",
+                onValueChange = { onTecnicoIdChange(it.toIntOrNull()) }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Añadir nuevo ticket",
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(vertical = 12.dp)
-                )
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = { nuevoTicket() }
+                ) {
+                    Text(text = "Nuevo")
+                    Icon(Icons.Filled.Refresh, contentDescription = "Nuevo")
+                }
+
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = { saveTicket() }
+                ) {
+                    Text(text = "Guardar")
+                    Icon(Icons.Filled.Add, contentDescription = "Guardar")
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth()
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = goToMensajeScreen
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                    ) {
-                        OutlinedTextField(
-                            label = { Text(text = "Fecha") },
-                            value = fecha,
-                            onValueChange = { fecha = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        OutlinedTextField(
-                            label = { Text(text = "Prioridad ID") },
-                            value = prioridadId,
-                            onValueChange = { prioridadId = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        OutlinedTextField(
-                            label = { Text(text = "Cliente") },
-                            value = cliente,
-                            onValueChange = { cliente = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        OutlinedTextField(
-                            label = { Text(text = "Asunto") },
-                            value = asunto,
-                            onValueChange = { asunto = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        OutlinedTextField(
-                            label = { Text(text = "Descripción") },
-                            value = descripcion,
-                            onValueChange = { descripcion = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                Text(text = "Enviar Mensajes")
+                Icon(Icons.Filled.Email, contentDescription = "Enviar Mensajes")
+            }
 
-                        OutlinedTextField(
-                            label = { Text(text = "Técnico") },
-                            value = tecnicoId,
-                            onValueChange = { tecnicoId = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(modifier = Modifier.padding(2.dp))
-                        errorMessage?.let {
-                            Text(text = it, color = Color.Red)
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            OutlinedButton(
-                                onClick = {
-
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Nuevo"
-                                )
-                                Text(text = "Nuevo")
-                            }
-                            val scope = rememberCoroutineScope()
-                            OutlinedButton(
-                                onClick = {
-                                    if (fecha.isBlank() || prioridadId.isBlank() || cliente.isBlank() || asunto.isBlank() || descripcion.isBlank() || tecnicoId.isBlank()) {
-                                        errorMessage = "Todos los campos son obligatorios."
-                                    } else {
-                                        try {
-                                            val prioridad = prioridadId.toInt()
-                                            val tecnicoIdInt = tecnicoId.toInt()
-                                            scope.launch {
-                                                ticketRepository.saveTicket(
-                                                    TicketEntity(
-                                                        fecha = fecha,
-                                                        prioridadId = prioridad,
-                                                        cliente = cliente,
-                                                        asunto = asunto,
-                                                        descripcion = descripcion,
-                                                        tecnicoId = tecnicoIdInt
-                                                    )
-                                                )
-                                                fecha = ""
-                                                prioridadId = ""
-                                                cliente = ""
-                                                asunto = ""
-                                                descripcion = ""
-                                                tecnicoId = ""
-                                            }
-                                        } catch (e: NumberFormatException) {
-                                            errorMessage = "La prioridad y el Técnico deben ser números válidos."
-                                        }
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Guardar"
-                                )
-                                Text(text = "Guardar")
-                            }
-                        }
-                    }
-                }
+            uiState.mensajeError?.let { message ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = message,
+                    color = Color.Red,
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                )
             }
         }
     }
 }
+
+

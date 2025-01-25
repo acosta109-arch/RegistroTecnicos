@@ -24,27 +24,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun DeleteTicketScreen(
-    tecnicoDb: TecnicoDb,
+    viewModel: TicketViewModel = hiltViewModel(),
     ticketId: Int,
     goBack: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
-    val ticket = remember { mutableStateOf<TicketEntity?>(null) }
-    val isLoading = remember { mutableStateOf(true) }
-
     LaunchedEffect(ticketId) {
-        val t = tecnicoDb.ticketDao().find(ticketId)
-        ticket.value = t
-        isLoading.value = false
+        viewModel.selectTicket(ticketId)
     }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val ticketEntity = ticket.value
-    var mensajeError by remember { mutableStateOf("") }
-    var mensajeExito by remember { mutableStateOf("") }
+    DeleteTicketBodyScreen(
+        uiState = uiState,
+        onDeleteTicket = viewModel::deleteTicket,
+        goBack = goBack
+    )
+}
 
+@Composable
+fun DeleteTicketBodyScreen(
+    uiState: TicketViewModel.UiState,
+    onDeleteTicket: () -> Unit,
+    goBack: () -> Unit
+) {
     Scaffold(
         topBar = {
             Text(
@@ -68,181 +74,87 @@ fun DeleteTicketScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            if (isLoading.value) {
-                Text(
-                    text = "Cargando...",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-            } else if (ticketEntity != null) {
-                Card(
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+                        .padding(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Fecha",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            ),
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                        Text(
-                            text = ticketEntity.fecha ?: "No disponible",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                color = Color.Gray
-                            ),
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-
-                        Text(
-                            text = "Prioridad",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            ),
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
-                        )
-                        Text(
-                            text = ticketEntity.prioridadId.toString(),
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                color = Color.Gray
-                            )
-                        )
-
-                        Text(
-                            text = "Cliente",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            ),
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
-                        )
-                        Text(
-                            text = ticketEntity.cliente,
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                color = Color.Gray
-                            )
-                        )
-
-                        Text(
-                            text = "Asunto",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            ),
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
-                        )
-                        Text(
-                            text = ticketEntity.asunto,
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                color = Color.Gray
-                            )
-                        )
-
-                        Text(
-                            text = "Descripción",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            ),
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
-                        )
-                        Text(
-                            text = ticketEntity.descripcion,
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                color = Color.Gray
-                            )
-                        )
-
-                        Text(
-                            text = "Técnico ID",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            ),
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
-                        )
-                        Text(
-                            text = ticketEntity.tecnicoId.toString(),
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                color = Color.Gray
-                            )
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (mensajeError.isNotEmpty()) {
                     Text(
-                        text = mensajeError,
-                        color = Color.Red,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                        text = "Fecha: ${uiState.fecha ?: "No disponible"}",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                if (mensajeExito.isNotEmpty()) {
+
                     Text(
-                        text = mensajeExito,
-                        color = Color.Green,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                        text = "Prioridad: ${uiState.prioridadId}",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
 
-                Button(
-                    onClick = {
-                        scope.launch {
-                            tecnicoDb.ticketDao().delete(ticketEntity)
-                            mensajeExito = "Ticket Eliminado con Éxito."
-                            launch {
-                                kotlinx.coroutines.delay(2000)
-                                goBack()
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                ) {
-                    Text(text = "Eliminar")
-                }
+                    Text(
+                        text = "Cliente: ${uiState.cliente}",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
 
-                Button(
-                    onClick = {
-                        goBack()
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                ) {
-                    Text(text = "Volver")
+                    Text(
+                        text = "Asunto: ${uiState.asunto}",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    Text(
+                        text = "Descripción: ${uiState.descripcion}",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
                 }
-            } else {
-                Text(
-                    text = "Ticket no encontrado.",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    color = Color.Red
-                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    onDeleteTicket()
+                },
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+            ) {
+                Text(text = "Eliminar")
+            }
+
+            Button(
+                onClick = {
+                    goBack()
+                },
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+            ) {
+                Text(text = "Cancelar")
             }
         }
     }

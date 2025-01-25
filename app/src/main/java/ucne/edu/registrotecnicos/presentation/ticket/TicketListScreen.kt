@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package edu.ucne.registrotecnicos.presentation.ticket
 
 import androidx.compose.foundation.background
@@ -9,6 +11,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,18 +23,73 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import ucne.edu.registrotecnicos.data.local.entity.TecnicoEntity
 import ucne.edu.registrotecnicos.data.local.entity.TicketEntity
+import ucne.edu.registrotecnicos.presentation.ticket.TicketViewModel
 
 @Composable
 fun TicketListScreen(
-    ticketList: List<TicketEntity>,
-    tecnicoList: List<TecnicoEntity>,
+    drawerState: DrawerState,
+    scope: CoroutineScope,
+    viewModel: TicketViewModel = hiltViewModel(),
     createTicket: () -> Unit,
-    editTicket: (TicketEntity) -> Unit,
-    deleteTicket: (TicketEntity) -> Unit
+    onEditTicket: (TicketEntity) -> Unit,
+    onDeleteTicket: (TicketEntity) -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val tecnicoList = uiState.tecnicos
+
+    TicketListBodyScreen(
+        drawerState = drawerState,
+        scope = scope,
+        uiState = uiState,
+        createTicket = createTicket,
+        onEditTicket = onEditTicket,
+        onDeleteTicket = onDeleteTicket,
+        tecnicoList = tecnicoList
+    )
+}
+
+
+@Composable
+fun TicketListBodyScreen(
+    drawerState: DrawerState,
+    scope: CoroutineScope,
+    uiState: TicketViewModel.UiState,
+    createTicket: () -> Unit,
+    onEditTicket: (TicketEntity) -> Unit,
+    onDeleteTicket: (TicketEntity) -> Unit,
+    tecnicoList: List<TecnicoEntity>
 ) {
     Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "Lista de Tickets",
+                        style = TextStyle(
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        scope.launch { drawerState.open() }
+                    }) {
+                        Icon(imageVector = Icons.Default.Menu, contentDescription = "Ir al menú")
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFF6200EE)
+                )
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = createTicket,
@@ -41,50 +99,30 @@ fun TicketListScreen(
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Añadir Ticket")
             }
-        },
-        content = { paddingValues ->
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp)
+        }
+    ) { paddingValues ->
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Lista de Tickets",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    style = TextStyle(
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center
+                items(uiState.tickets) { ticket ->
+                    TicketRow(
+                        ticket = ticket,
+                        tecnicoList = tecnicoList,
+                        onEditTicket = onEditTicket,
+                        onDeleteTicket = onDeleteTicket
                     )
-                )
-
-                if (ticketList.isEmpty()) {
-                    Text(
-                        text = "No hay tickets disponibles",
-                        style = TextStyle(
-                            fontSize = 18.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center
-                        )
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(ticketList) { ticket ->
-                            TicketRow(ticket, tecnicoList, editTicket, deleteTicket)
-                        }
-                    }
                 }
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -195,3 +233,6 @@ fun TicketRow(
         }
     }
 }
+
+
+
