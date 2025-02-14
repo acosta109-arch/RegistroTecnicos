@@ -21,6 +21,8 @@ import ucne.edu.registrotecnicos.data.local.database.TecnicoDb
 import ucne.edu.registrotecnicos.data.repository.TecnicoRepository
 import ucne.edu.registrotecnicos.data.repository.TicketRepository
 import ucne.edu.registrotecnicos.presentation.HomeScreen
+import ucne.edu.registrotecnicos.presentation.articulo.ArticuloListScreen
+import ucne.edu.registrotecnicos.presentation.articulo.ArticuloScreen
 import ucne.edu.registrotecnicos.presentation.mensaje.MensajeScreen
 import ucne.edu.registrotecnicos.presentation.tecnico.TecnicoScreen
 import ucne.edu.registrotecnicos.presentation.tecnico.DeleteTecnicoScreen
@@ -57,6 +59,9 @@ fun registro_tecnicos_tickets(tecnicoDb: TecnicoDb, navHostController: NavHostCo
                 },
                 goToTickets = {
                     navHostController.navigate(Screen.TicketList)
+                },
+                goToArticulos = {
+                    navHostController.navigate(Screen.ArticuloList)
                 }
             )
         }
@@ -150,6 +155,32 @@ fun registro_tecnicos_tickets(tecnicoDb: TecnicoDb, navHostController: NavHostCo
             val args = it.toRoute<Screen.DeleteTicket>()
             DeleteTicketScreen(
                 ticketId = args.ticketId,
+                goBack = {
+                    navHostController.navigateUp()
+                }
+            )
+        }
+
+        composable<Screen.ArticuloList> {
+            ArticuloListScreen(
+                drawerState = drawerState,
+                scope = scope,
+                createArticulo = {
+                    navHostController.navigate(Screen.Articulo(0))
+                },
+                onEditArticulo = { tecnico ->
+                    navHostController.navigate(Screen.EditTecnico(tecnico))
+                },
+                onDeleteArticulo = { tecnico ->
+                    navHostController.navigate(Screen.DeleteTecnico(tecnico))
+                }
+            )
+        }
+
+
+        composable<Screen.Articulo> {
+            val args = it.toRoute<Screen.Articulo>()
+            ArticuloScreen(
                 goBack = {
                     navHostController.navigateUp()
                 }

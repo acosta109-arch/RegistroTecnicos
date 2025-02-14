@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -21,7 +22,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HomeScreen(
     goToTecnico: () -> Unit,
-    goToTickets: () -> Unit
+    goToTickets: () -> Unit,
+    goToArticulos: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -101,6 +103,36 @@ fun HomeScreen(
                 )
                 Text(
                     text = "Tickets",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White
+                )
+            }
+        }
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+                .clickable(onClick = goToArticulos),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Blue
+            ),
+            elevation = CardDefaults.cardElevation(8.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Info,
+                    contentDescription = "Articulos",
+                    tint = Color.White,
+                    modifier = Modifier.padding(end = 16.dp)
+                )
+                Text(
+                    text = "Articulos",
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White
                 )
