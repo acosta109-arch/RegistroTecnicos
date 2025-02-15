@@ -2,6 +2,7 @@
 
 package edu.ucne.registrotecnicos.presentation.tecnico
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,11 +13,13 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -26,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import edu.ucne.registrotecnicos.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import ucne.edu.registrotecnicos.data.local.entity.TecnicoEntity
@@ -53,6 +57,7 @@ fun TecnicoListScreen(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TecnicoListBodyScreen(
     drawerState: DrawerState,
@@ -62,6 +67,13 @@ fun TecnicoListBodyScreen(
     onEditTecnico: (Int) -> Unit,
     onDeleteTecnico: (Int) -> Unit
 ) {
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredTecnicos = uiState.tecnicos.filter {
+        it.nombres.contains(searchQuery, ignoreCase = true) ||
+                it.tecnicoId.toString().contains(searchQuery)
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -76,10 +88,12 @@ fun TecnicoListBodyScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        scope.launch { drawerState.open() }
-                    }) {
-                        Icon(imageVector = Icons.Default.Menu, contentDescription = "Ir al menú")
+                    IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                        Image(
+                            painter = painterResource(id = R.drawable.tecnicos),
+                            contentDescription = "Ir al menú",
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -105,16 +119,42 @@ fun TecnicoListBodyScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
+            SearchFilter(searchQuery) { query -> searchQuery = query }
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(uiState.tecnicos) { tecnico ->
+                items(filteredTecnicos) { tecnico ->
                     TecnicoRow(tecnico, onEditTecnico, onDeleteTecnico)
                 }
             }
         }
     }
+}
+
+@Composable
+fun SearchFilter(
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit
+) {
+    TextField(
+        value = searchQuery,
+        onValueChange = { onSearchQueryChange(it) },
+        label = { Text("Buscar técnico") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
+        singleLine = true,
+        colors = TextFieldDefaults.textFieldColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        ),
+        leadingIcon = {
+            Icon(Icons.Filled.Search, contentDescription = "Buscar")
+        }
+    )
 }
 
 @Composable
@@ -200,6 +240,7 @@ fun TecnicoRow(
         }
     }
 }
+
 
 
 
