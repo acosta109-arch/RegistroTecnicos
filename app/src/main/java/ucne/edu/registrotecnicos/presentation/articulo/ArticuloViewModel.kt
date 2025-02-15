@@ -74,8 +74,12 @@ class ArticuloViewModel @Inject constructor(
     fun onCostoChange(costo: String) {
         _uiState.update {
             val costoDouble = costo.toDoubleOrNull()
+            val gananciaDouble = it.ganancia.toDoubleOrNull()
+            val precio = if (costoDouble != null && gananciaDouble != null) costoDouble + gananciaDouble else null
+
             it.copy(
                 costo = costo,
+                precio = precio?.toString() ?: "",
                 errorMessage = when {
                     costoDouble == null -> "Valor no numérico"
                     costoDouble <= 0 -> "Debe ingresar un valor mayor a 0"
@@ -88,8 +92,12 @@ class ArticuloViewModel @Inject constructor(
     fun onGananciaChange(ganancia: String) {
         _uiState.update {
             val gananciaDouble = ganancia.toDoubleOrNull()
+            val costoDouble = it.costo.toDoubleOrNull()
+            val precio = if (costoDouble != null && gananciaDouble != null) costoDouble + gananciaDouble else null
+
             it.copy(
                 ganancia = ganancia,
+                precio = precio?.toString() ?: "",
                 errorMessage = when {
                     gananciaDouble == null -> "Valor no numérico"
                     gananciaDouble < 0 -> "Debe ser 0 o mayor"
@@ -102,16 +110,23 @@ class ArticuloViewModel @Inject constructor(
     fun onPrecioChange(precio: String) {
         _uiState.update {
             val precioDouble = precio.toDoubleOrNull()
+            val costoDouble = it.costo.toDoubleOrNull()
+            val gananciaDouble = it.ganancia.toDoubleOrNull()
+
+            val calculatedPrecio = if (precioDouble != null) precioDouble else
+                if (costoDouble != null && gananciaDouble != null) costoDouble + gananciaDouble else null
+
             it.copy(
                 precio = precio,
                 errorMessage = when {
-                    precioDouble == null -> "Valor no numérico"
-                    precioDouble <= 0 -> "Debe ingresar un valor mayor a 0"
+                    precioDouble == null && calculatedPrecio == null -> "Valor no numérico"
+                    precioDouble != null && precioDouble <= 0 -> "Debe ingresar un valor mayor a 0"
                     else -> null
                 }
             )
         }
     }
+
 
     fun find(articuloId: Int) {
         viewModelScope.launch {
