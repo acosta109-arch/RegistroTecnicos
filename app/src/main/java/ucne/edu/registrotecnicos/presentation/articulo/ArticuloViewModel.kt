@@ -75,7 +75,9 @@ class ArticuloViewModel @Inject constructor(
         _uiState.update {
             val costoDouble = costo.toDoubleOrNull()
             val gananciaDouble = it.ganancia.toDoubleOrNull()
-            val precio = if (costoDouble != null && gananciaDouble != null) costoDouble + gananciaDouble else null
+            val precio = if (costoDouble != null && gananciaDouble != null)
+                (costoDouble * gananciaDouble / 100) + costoDouble
+            else null
 
             it.copy(
                 costo = costo,
@@ -93,7 +95,9 @@ class ArticuloViewModel @Inject constructor(
         _uiState.update {
             val gananciaDouble = ganancia.toDoubleOrNull()
             val costoDouble = it.costo.toDoubleOrNull()
-            val precio = if (costoDouble != null && gananciaDouble != null) costoDouble + gananciaDouble else null
+            val precio = if (costoDouble != null && gananciaDouble != null)
+                (costoDouble * gananciaDouble / 100) + costoDouble
+            else null
 
             it.copy(
                 ganancia = ganancia,
@@ -113,11 +117,13 @@ class ArticuloViewModel @Inject constructor(
             val costoDouble = it.costo.toDoubleOrNull()
             val gananciaDouble = it.ganancia.toDoubleOrNull()
 
-            val calculatedPrecio = if (precioDouble != null) precioDouble else
-                if (costoDouble != null && gananciaDouble != null) costoDouble + gananciaDouble else null
+            val calculatedPrecio = if (precioDouble != null) precioDouble
+            else if (costoDouble != null && gananciaDouble != null)
+                (costoDouble * gananciaDouble / 100) + costoDouble
+            else null
 
             it.copy(
-                precio = precio,
+                precio = calculatedPrecio?.toString() ?: "",
                 errorMessage = when {
                     precioDouble == null && calculatedPrecio == null -> "Valor no numérico"
                     precioDouble != null && precioDouble <= 0 -> "Debe ingresar un valor mayor a 0"
@@ -126,6 +132,7 @@ class ArticuloViewModel @Inject constructor(
             )
         }
     }
+
 
 
     fun find(articuloId: Int) {
