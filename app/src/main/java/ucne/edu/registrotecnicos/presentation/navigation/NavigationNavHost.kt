@@ -24,6 +24,8 @@ import ucne.edu.registrotecnicos.presentation.HomeScreen
 import ucne.edu.registrotecnicos.presentation.articulo.ArticuloListScreen
 import ucne.edu.registrotecnicos.presentation.articulo.ArticuloScreen
 import ucne.edu.registrotecnicos.presentation.mensaje.MensajeScreen
+import ucne.edu.registrotecnicos.presentation.sistema.SistemaListScreen
+import ucne.edu.registrotecnicos.presentation.sistema.SistemaScreen
 import ucne.edu.registrotecnicos.presentation.tecnico.TecnicoScreen
 import ucne.edu.registrotecnicos.presentation.tecnico.DeleteTecnicoScreen
 import ucne.edu.registrotecnicos.presentation.ticket.DeleteTicketScreen
@@ -62,6 +64,9 @@ fun registro_tecnicos_tickets(tecnicoDb: TecnicoDb, navHostController: NavHostCo
                 },
                 goToArticulos = {
                     navHostController.navigate(Screen.ArticuloList)
+                },
+                goToSistemas = {
+                    navHostController.navigate(Screen.SistemaList)
                 }
             )
         }
@@ -177,10 +182,34 @@ fun registro_tecnicos_tickets(tecnicoDb: TecnicoDb, navHostController: NavHostCo
             )
         }
 
-
         composable<Screen.Articulo> {
             val args = it.toRoute<Screen.Articulo>()
             ArticuloScreen(
+                goBack = {
+                    navHostController.navigateUp()
+                }
+            )
+        }
+
+        composable<Screen.SistemaList> {
+            SistemaListScreen(
+                drawerState = drawerState,
+                scope = scope,
+                createSistema = {
+                    navHostController.navigate(Screen.Sistema(0))
+                },
+                onEditSistema = { tecnico ->
+                    navHostController.navigate(Screen.EditTecnico(tecnico))
+                },
+                onDeleteSistema = { tecnico ->
+                    navHostController.navigate(Screen.DeleteTecnico(tecnico))
+                }
+            )
+        }
+
+        composable<Screen.Sistema> {
+            val args = it.toRoute<Screen.Sistema>()
+            SistemaScreen(
                 goBack = {
                     navHostController.navigateUp()
                 }

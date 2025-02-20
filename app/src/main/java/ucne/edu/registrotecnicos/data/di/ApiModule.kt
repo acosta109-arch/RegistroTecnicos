@@ -6,15 +6,17 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import ucne.edu.registrotecnicos.data.remote.ArticuloManagerApi
-import javax.inject.Singleton
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import ucne.edu.registrotecnicos.data.remote.ArticuloManagerApi
+import ucne.edu.registrotecnicos.data.remote.sistemas.SistemaManagerApi
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 object ApiModule {
-    const val BASE_URL = "https://apitarea3.azurewebsites.net/"
+    private const val BASE_URL_ARTICULOS = "https://apitarea3.azurewebsites.net/"
+    private const val BASE_URL_TICKETS = "https://sistematicket.azurewebsites.net/"
 
     @Provides
     @Singleton
@@ -27,9 +29,19 @@ object ApiModule {
     @Singleton
     fun providesArticuloManagerApi(moshi: Moshi): ArticuloManagerApi {
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BASE_URL_ARTICULOS)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(ArticuloManagerApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun providesSistemaTicketApi(moshi: Moshi): SistemaManagerApi {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL_TICKETS)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(SistemaManagerApi::class.java)
     }
 }

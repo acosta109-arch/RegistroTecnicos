@@ -7,7 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.ExitToApp
@@ -39,6 +41,7 @@ fun HomeScreen(
     goToTecnico: () -> Unit,
     goToTickets: () -> Unit,
     goToArticulos: () -> Unit,
+    goToSistemas: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -54,6 +57,9 @@ fun HomeScreen(
         contentAlignment = Alignment.Center
     ) {
         Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -96,8 +102,21 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 OptionCard("Artículos", R.drawable.articulos, goToArticulos)
-                OptionCard("API", R.drawable.apiimg) {
+                OptionCard("API Artículos", R.drawable.apiimg) {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://apitarea3.azurewebsites.net/swagger/index.html"))
+                    context.startActivity(intent)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                OptionCard("Sistemas", R.drawable.sistemas, goToSistemas)
+                OptionCard("API Sistemas", R.drawable.api2img) {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://sistematicket.azurewebsites.net/swagger/index.html"))
                     context.startActivity(intent)
                 }
             }
